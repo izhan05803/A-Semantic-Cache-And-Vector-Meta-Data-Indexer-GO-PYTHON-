@@ -4,7 +4,7 @@ A high-performance, polyglot system for **semantic caching** and **vector-based 
 
 ## Architecture
 
-![Semantic Cache & Vector Metadata Indexer Architecture](./assets/architecture.png)
+![Semantic Cache & Vector Metadata Indexer Architecture](./assets/architecture.svg)
 
 ---
 
