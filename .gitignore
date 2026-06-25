@@ -1,0 +1,24 @@
+# Environment variables (Crucial!)
+.env
+.env.local
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Go artifacts
+proxy/cmd/server/server
+proxy/cmd/server/main
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Data/Cache
+data/
+indexer/data/
+.cache/
+
+# OS artifacts
+.DS_Store

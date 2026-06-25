@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package cache;
+
+option go_package = "./pb";
+
+service CacheService {
+  rpc CheckCache(CacheRequest) returns (CacheResponse);
+  rpc UpdateCache(CacheData) returns (UpdateResponse);
+}
+
+message CacheRequest {
+  string prompt = 1;
+  float similarity_threshold = 2; // e.g., 0.85
+}
+
+message CacheResponse {
+  bool hit = 1;
+  string response = 2;
+  float score = 3; // The similarity score found
+}
+
+message CacheData {
+  string prompt = 1;
+  string response = 2;
+  map<string, string> metadata = 3; // For extra info
+}
+
+message UpdateResponse {
+  bool success = 1;
+}
