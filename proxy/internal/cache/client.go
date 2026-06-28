@@ -2,10 +2,24 @@ package cache
 
 import (
 	"context"
+	"os"
+	"time"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/metadata"
 	"semantic-cache-proxy/pb"
 )
+
+// authUnaryInterceptor attaches the API key to every outgoing gRPC call
+func authUnaryInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	apiKey := os.Getenv("INDEXER_API_KEY")
+	if apiKey != "" {
+		ctx = metadata.AppendToOutgoingContext(ctx, "x-api-key", apiKey)
+	}
+	return invoker(ctx, method, req, reply, cc, opts...)
+}
 
 // Client is a wrapper around the gRPC CacheServiceClient
 type Client struct {
@@ -15,7 +29,15 @@ type Client struct {
 
 // NewClient establishes a gRPC connection to the Python Indexer and returns a Client
 func NewClient(addr string) (*Client, error) {
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(authUnaryInterceptor),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                30 * time.Second,
+			Timeout:             10 * time.Second,
+			PermitWithoutStream: true,
+		}),
+	)
 	if err != nil {
 		return nil, err
 	}
