@@ -10,6 +10,7 @@ __pycache__/
 # Go artifacts
 proxy/cmd/server/server
 proxy/cmd/server/main
+proxy/server
 *.exe
 *.dll
 *.so
