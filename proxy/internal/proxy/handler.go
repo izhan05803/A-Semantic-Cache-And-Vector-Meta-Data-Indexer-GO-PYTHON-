@@ -4,22 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
+	"time"
+
 	"semantic-cache-proxy/internal/cache"
+	"semantic-cache-proxy/internal/circuitbreaker"
+	"semantic-cache-proxy/internal/retry"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
 
-// Handler holds references to the gRPC cache client and the Google AI client
+const maxPromptLength = 100000
+
 type Handler struct {
-	cacheClient  *cache.Client
-	geminiClient *genai.Client
+	cacheClient      *cache.Client
+	geminiClient     *genai.Client
+	cacheBreaker     *circuitbreaker.Breaker
+	geminiBreaker    *circuitbreaker.Breaker
+	geminiRetry      retry.Config
 }
 
-// NewHandler creates a new proxy Handler with the given cache client and Gemini client
 func NewHandler(c *cache.Client) (*Handler, error) {
 	apiKey := os.Getenv("GOOGLE_API_KEY")
 	if apiKey == "" {
@@ -34,8 +41,15 @@ func NewHandler(c *cache.Client) (*Handler, error) {
 	}
 
 	return &Handler{
-		cacheClient:  c,
-		geminiClient: geminiClient,
+		cacheClient:   c,
+		geminiClient:  geminiClient,
+		cacheBreaker:  circuitbreaker.New(5, 30*time.Second),
+		geminiBreaker: circuitbreaker.New(3, 60*time.Second),
+		geminiRetry: retry.Config{
+			MaxRetries: 2,
+			BaseDelay:  500 * time.Millisecond,
+			MaxDelay:   5 * time.Second,
+		},
 	}, nil
 }
 
@@ -70,6 +84,12 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(req.Prompt) > maxPromptLength {
+		slog.Warn("Prompt too long", "length", len(req.Prompt), "max", maxPromptLength)
+		http.Error(w, "prompt exceeds maximum length", http.StatusBadRequest)
+		return
+	}
+
 	// Use default threshold if not provided
 	threshold := req.Threshold
 	if threshold == 0 {
@@ -78,10 +98,16 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 
-	// Step 1: Check the semantic cache via gRPC
-	hit, cachedResponse, score, err := h.cacheClient.CheckCache(ctx, req.Prompt, threshold)
-	if err != nil {
-		log.Printf("Cache check error: %v", err)
+	// Step 1: Check the semantic cache via gRPC (with circuit breaker)
+	var hit bool
+	var cachedResponse string
+	var score float32
+	if err := h.cacheBreaker.Execute(func() error {
+		var e error
+		hit, cachedResponse, score, e = h.cacheClient.CheckCache(ctx, req.Prompt, threshold)
+		return e
+	}); err != nil {
+		slog.Error("Cache check error", "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -95,41 +121,52 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
-		log.Printf("CACHE HIT for prompt=%q, response=%q", req.Prompt, cachedResponse)
+		slog.Info("cache hit", "prompt", req.Prompt, "response_len", len(cachedResponse))
 		return
 	}
 
-	// Step 3: Cache miss — Call Google AI Studio (Gemini)
-	model := h.geminiClient.GenerativeModel("gemini-flash-lite-latest")
-	model.SetTemperature(0.7)
+	// Step 3: Cache miss — Call Google AI Studio (Gemini) with retry + circuit breaker
+	var llmResponse string
+	if err := h.geminiBreaker.Execute(func() error {
+		return retry.ExponentialBackoff(h.geminiRetry, func() error {
+			model := h.geminiClient.GenerativeModel("gemini-flash-lite-latest")
+			model.SetTemperature(0.7)
 
-	response, err := model.GenerateContent(ctx, genai.Text(req.Prompt))
-	if err != nil {
-		log.Printf("Gemini error: %v", err)
+			response, err := model.GenerateContent(ctx, genai.Text(req.Prompt))
+			if err != nil {
+				slog.Warn("Gemini call failed, will retry", "error", err)
+				return err
+			}
+
+			llmResponse = ""
+			if len(response.Candidates) > 0 && response.Candidates[0].Content != nil {
+				for _, part := range response.Candidates[0].Content.Parts {
+					if textPart, ok := part.(genai.Text); ok {
+						llmResponse += string(textPart)
+					}
+				}
+			}
+			if llmResponse == "" {
+				llmResponse = "No response generated"
+			}
+			return nil
+		})
+	}); err != nil {
+		slog.Error("Gemini error after retries", "error", err)
 		http.Error(w, "failed to get response from LLM", http.StatusInternalServerError)
 		return
 	}
 
-	// Extract the text response
-	llmResponse := ""
-	if len(response.Candidates) > 0 && response.Candidates[0].Content != nil {
-		for _, part := range response.Candidates[0].Content.Parts {
-			if textPart, ok := part.(genai.Text); ok {
-				llmResponse += string(textPart)
-			}
+	// Step 4: Store the new response in the cache for future requests (with circuit breaker)
+	if err := h.cacheBreaker.Execute(func() error {
+		success, e := h.cacheClient.UpdateCache(ctx, req.Prompt, llmResponse, nil)
+		if e != nil {
+			return e
 		}
-	}
-
-	if llmResponse == "" {
-		llmResponse = "No response generated"
-	}
-
-	// Step 4: Store the new response in the cache for future requests
-	success, err := h.cacheClient.UpdateCache(ctx, req.Prompt, llmResponse, nil)
-	if err != nil {
-		log.Printf("Cache update error: %v", err)
-	} else {
-		log.Printf("Cache updated: success=%v for prompt=%q", success, req.Prompt)
+		slog.Info("Cache updated", "success", success, "prompt", req.Prompt)
+		return nil
+	}); err != nil {
+		slog.Error("Cache update error", "error", err)
 	}
 
 	// Step 5: Return the LLM response
@@ -140,5 +177,5 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
-	log.Printf("CACHE MISS for prompt=%q, returning Gemini response", req.Prompt)
+	slog.Info("cache miss", "prompt", req.Prompt, "response_len", len(llmResponse))
 }
