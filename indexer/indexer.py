@@ -1,12 +1,16 @@
 import chromadb
 from sentence_transformers import SentenceTransformer
 import uuid
+from config import settings
+
 
 class Indexer:
-    def __init__(self):
-        self.model=SentenceTransformer('all-MiniLM-L6-v2')
-        self.client = chromadb.PersistentClient(path="data/chroma_db")
+    def __init__(self, settings=settings):
+        self.model = SentenceTransformer(settings.EMBEDDING_MODEL)
+        self.client = chromadb.PersistentClient(path=settings.CHROMA_DB_PATH)
         self.collection = self.client.get_or_create_collection(name="semantic_cache")
+
+
 
     def add_to_cache(self, prompt: str, response: str, metadata: dict):
         embedding = self.model.encode(prompt).tolist()

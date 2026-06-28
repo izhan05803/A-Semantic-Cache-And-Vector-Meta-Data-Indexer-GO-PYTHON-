@@ -1,0 +1,32 @@
+services:
+  indexer:
+    build:
+      context: ./indexer
+    ports:
+      - "50051:50051"
+    volumes:
+      - chroma_data:/data/chroma_db
+    environment:
+      - CHROMA_DB_PATH=/data/chroma_db
+    networks:
+      - cache-net
+
+  proxy:
+    build:
+      context: ./proxy
+    ports:
+      - "8080:8080"
+    depends_on:
+      - indexer
+    environment:
+      - INDEXER_ADDR=indexer:50051
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    networks:
+      - cache-net
+
+volumes:
+  chroma_data:
+
+networks:
+  cache-net:
+    driver: bridge
