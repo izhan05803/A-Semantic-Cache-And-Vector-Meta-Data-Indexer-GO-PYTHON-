@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Site · Semantic Cache Showcase</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      securityLevel: "strict",
+      flowchart: { htmlLabels: true, useMaxWidth: false, padding: 20, nodeSpacing: 50, rankSpacing: 50 },
+      themeVariables: {
+        background: "#1A0F0A",
+        primaryColor: "#D4A574",
+        primaryTextColor: "#1A0F0A",
+        secondaryColor: "#2C1810",
+        secondaryTextColor: "#EAE0D5",
+        tertiaryColor: "#4A2C1A",
+        lineColor: "#8B7355",
+        nodeBorder: "#D4A574",
+        clusterBkg: "#2C1810",
+        clusterBorder: "#4A2C1A",
+        mainBkg: "#2C1810",
+        nodeTextColor: "#EAE0D5",
+        titleColor: "#D4A574",
+        edgeLabelBackground: "#2C1810",
+        edgeLabelColor: "#8B7355",
+      },
+    });
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :where(.grid, .flex) > * { min-width: 0; }
+    :where(p, h1, h2, h3, h4, h5, h6, li, dd, blockquote, figcaption, td, th, .badge, .label) { overflow-wrap: anywhere; }
+    :where(img, svg, video, canvas, iframe) { max-width: 100%; height: auto; }
+  </style>
+</head>
+<body class="bg-[#1A0F0A] min-h-screen">
+  <div class="max-w-6xl mx-auto p-4 md:p-8 space-y-8">
+
+    <!-- Header -->
+    <div class="text-center space-y-2">
+      <div class="badge badge-warning badge-outline text-xs tracking-widest">portfolio showcase</div>
+      <h1 class="text-4xl md:text-5xl font-bold text-[#EAE0D5]">Semantic Cache <span class="text-[#D4A574]">&amp; Vector Metadata Indexer</span></h1>
+      <p class="text-[#8B7355] max-w-2xl mx-auto text-sm md:text-base">
+        An interactive portfolio site featuring a live ASCII donut animation, real-time cache demo,
+        Prometheus metrics dashboard, and full architecture visualization — all with a warm chocolate color palette.
+      </p>
+      <div class="flex flex-wrap justify-center gap-2 mt-4">
+        <a href="https://izhan05803.github.io/A-Semantic-Cache-And-Vector-Meta-Data-Indexer-GO-PYTHON-/project.html" target="_blank" class="btn btn-warning btn-sm">▶ Open Live Site</a>
+        <a href="https://github.com/izhan05803/A-Semantic-Cache-And-Vector-Meta-Data-Indexer-GO-PYTHON-" target="_blank" class="btn btn-ghost btn-sm text-[#D4A574]">View Source</a>
+      </div>
+    </div>
+
+    <!-- Preview Screenshot -->
+    <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+      <div class="card-body p-0 overflow-hidden rounded-box">
+        <div class="bg-[#1A0F0A] p-4 md:p-8 flex items-center justify-center min-h-[300px] relative">
+          <div class="font-mono text-[8px] md:text-[10px] leading-[7px] md:leading-[9px] text-[#A0522D] text-center select-none opacity-80" style="font-family:'Courier New',monospace;white-space:pre;line-height:1;transform:scaleX(0.9);">
+<pre style="color:#A0522D;font-size:9px;line-height:8px;text-align:center;">                                                                                
+                                                                                
+                                    ....,::;=!!!!!**##$$$$@@                   
+                               ...,,,::~:;;===!!!****##$$$$$@@@               
+                           .....,,,,---~~~:::;;===!!!****##$$$$$$$@@@          
+                        .......,,,----~~~~~:::;;;====!!!!***##$$$$$$$$$@       
+                      .......,,,----~~~~~~::::;;;;=====!!!!!***##$$$$$$$$      
+                     .......,,,-----~~~~~~:::::;;;;;======!!!!!!***##$$$       
+                    .......,,,,------~~~~~~~~~::::;;;;===!!!!!!!****##$$       
+                   .......,,,,---------~~~~~~~~:::::;;;;;====!!!!!!!***#       
+                  .......,,,,,----------~~~~~~~~~:::::;;;;=====!!!!!!!**       
+                  .......,,,,,-----------~~~~~~~~~:::::;;;;======!!!!!!*       
+                 .......,,,,,,-----------~~~~~~~~~~:::::;;;;;======!!!!!!      
+                 .......,,,,,,------------~~~~~~~~~~::::::;;;;======!!!!!      
+                 .......,,,,,,-------------~~~~~~~~~:::::::;;;;======!!!!      
+                  .......,,,,,,-------------~~~~~~~~~::::::::;;;;======!!!     
+                  .......,,,,,,,--------------~~~~~~~~:::::::::;;;;=====!!     
+                   .......,,,,,,,--------------~~~~~~~~~:::::::::;;;;====!     
+                    .......,,,,,,,---------------~~~~~~~~~::::::::::;;;;==     
+                      .......,,,,,,,----------------~~~~~~~~~:::::::::::;;     
+                        .......,,,,,,,-----------------~~~~~~~~~~::::::::      
+                          .......,,,,,,,,-----------------~~~~~~~~~~::::       
+                              .......,,,,,,,,,-----------------~~~~~~~:        
+                                    .......,,,,,,,,,,-----------------         
+                                                                                
+</pre>
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div class="bg-[#1A0F0A]/80 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#4A2C1A] max-w-md text-center">
+              <div class="text-xs font-mono text-[#D4A574] tracking-widest mb-1">ENGINEERING BUILD LOG</div>
+              <div class="text-xl md:text-2xl font-bold text-[#EAE0D5]">Semantic Cache<br><span class="text-[#D4A574]">Vector Metadata Indexer</span></div>
+              <div class="flex flex-wrap justify-center gap-1 mt-2">
+                <span class="badge badge-outline text-[10px] text-[#8B7355] border-[#4A2C1A]">Go 1.22</span>
+                <span class="badge badge-outline text-[10px] text-[#8B7355] border-[#4A2C1A]">Python 3.12</span>
+                <span class="badge badge-outline text-[10px] text-[#8B7355] border-[#4A2C1A]">ChromaDB</span>
+                <span class="badge badge-outline text-[10px] text-[#8B7355] border-[#4A2C1A]">Gemini</span>
+                <span class="badge badge-outline text-[10px] text-[#8B7355] border-[#4A2C1A]">K8s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Spinning Donut -->
+      <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">🍩</span>
+            <h2 class="card-title text-[#EAE0D5] text-lg">Spinning ASCII Donut</h2>
+          </div>
+          <p class="text-[#8B7355] text-sm mb-3">
+            Real-time terminal art rendering Andy Sloane's classic <span class="font-mono text-[#D4A574]">donut.c</span> algorithm directly in the browser.
+            The donut spins at 50ms intervals using a framebuffer + zbuffer, projected with 3D rotation matrices.
+          </p>
+          <div class="space-y-2 text-xs text-[#8B7355]">
+            <div class="flex justify-between"><span>Algorithm</span><span class="text-[#D4A574]">donut.c (ported to JS)</span></div>
+            <div class="flex justify-between"><span>Character set</span><span class="font-mono text-[#D4A574]">.,-~:;=!*#$@</span></div>
+            <div class="flex justify-between"><span>Resolution</span><span class="text-[#D4A574]">80 × 22 chars</span></div>
+            <div class="flex justify-between"><span>Color</span><span class="text-[#A0522D] font-mono">#A0522D (sienna)</span></div>
+            <div class="flex justify-between"><span>Framerate</span><span class="text-[#D4A574]">20 fps</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Demo -->
+      <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">▶</span>
+            <h2 class="card-title text-[#EAE0D5] text-lg">Interactive Query Demo</h2>
+          </div>
+          <p class="text-[#8B7355] text-sm mb-3">
+            Simulate a cache query with real-time request flow visualization. Each request animates through
+            Go Proxy → Cache Check → Python Indexer → ChromaDB / Gemini LLM.
+          </p>
+          <div class="space-y-2 text-xs text-[#8B7355]">
+            <div class="flex justify-between"><span>Cache hit rate (simulated)</span><span class="text-[#D4A574]">~65%</span></div>
+            <div class="flex justify-between"><span>Hit response time</span><span class="text-[#D4A574]">8–45 ms</span></div>
+            <div class="flex justify-between"><span>Miss response time</span><span class="text-[#D4A574]">320–900 ms</span></div>
+            <div class="flex justify-between"><span>Flow animation</span><span class="text-[#D4A574]">6-stage animated trace</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics Dashboard -->
+      <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">📊</span>
+            <h2 class="card-title text-[#EAE0D5] text-lg">Live Metrics Dashboard</h2>
+          </div>
+          <p class="text-[#8B7355] text-sm mb-3">
+            8 real-time Prometheus metrics displayed as animated cards. Updates on every query
+            plus background simulation every 3 seconds.
+          </p>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-[#1A0F0A] rounded-lg p-2"><span class="text-[#8B7355]">Hit Rate</span><br><span class="text-[#D4A574] font-bold">● gauge + bar</span></div>
+            <div class="bg-[#1A0F0A] rounded-lg p-2"><span class="text-[#8B7355]">Cache Hits</span><br><span class="text-[#D4A574] font-bold">proxy_cache_hits_total</span></div>
+            <div class="bg-[#1A0F0A] rounded-lg p-2"><span class="text-[#8B7355]">Cache Misses</span><br><span class="text-[#D4A574] font-bold">proxy_cache_misses_total</span></div>
+            <div class="bg-[#1A0F0A] rounded-lg p-2"><span class="text-[#8B7355]">Avg Latency</span><br><span class="text-[#D4A574] font-bold">proxy_request_duration_ms</span></div>
+            <div class="bg-[#1A0F0A] rounded-lg p-2"><span class="text-[#8B7355]">Circuit Breaker</span><br><span class="text-[#D4A574] font-bold">3 states</span></div>
+            <div class="bg-[#1A0F0A] rounded-lg p-2"><span class="text-[#8B7355]">Gemini Latency</span><br><span class="text-[#D4A574] font-bold">proxy_gemini_duration</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Palette -->
+      <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">🎨</span>
+            <h2 class="card-title text-[#EAE0D5] text-lg">Chocolate Color Palette</h2>
+          </div>
+          <p class="text-[#8B7355] text-sm mb-3">
+            All-neon-removed warm color scheme. Deep cocoa backgrounds, caramel accents, and
+            sienna-brown donut characters.
+          </p>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2"><div class="w-6 h-6 rounded" style="background:#1A0F0A"></div><span class="text-xs text-[#EAE0D5]">#1A0F0A</span><span class="text-xs text-[#8B7355]">— deep cocoa (bg)</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 rounded" style="background:#2C1810"></div><span class="text-xs text-[#EAE0D5]">#2C1810</span><span class="text-xs text-[#8B7355]">— milk chocolate (panel)</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 rounded" style="background:#4A2C1A"></div><span class="text-xs text-[#EAE0D5]">#4A2C1A</span><span class="text-xs text-[#8B7355]">— warm brown (border)</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 rounded" style="background:#D4A574"></div><span class="text-xs text-[#EAE0D5]">#D4A574</span><span class="text-xs text-[#8B7355]">— caramel (accent)</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 rounded" style="background:#A0522D"></div><span class="text-xs text-[#EAE0D5]">#A0522D</span><span class="text-xs text-[#8B7355]">— sienna (donut)</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 rounded" style="background:#EAE0D5"></div><span class="text-xs text-[#EAE0D5]">#EAE0D5</span><span class="text-xs text-[#8B7355]">— cream (text)</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+      <div class="card-body">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-2xl">🏗️</span>
+          <h2 class="card-title text-[#EAE0D5] text-lg">Architecture</h2>
+        </div>
+        <div class="mermaid">
+graph LR
+    User([User]) --> Proxy["Go Proxy<br/>HTTP :8080"]
+    Proxy --> Val["Input Validation"]
+    Val --> Rate["Rate Limiter<br/>per-IP token bucket"]
+    Rate --> CB["Circuit Breaker<br/>3-state"]
+    CB --> gRPC["gRPC Client<br/>auth interceptor"]
+    gRPC --> Indexer["Python Indexer<br/>gRPC :50051"]
+    Indexer --> Auth["Auth Interceptor"]
+    Auth --> Embed["Embedding<br/>Sentence-Transformers"]
+    Embed --> Chroma["ChromaDB<br/>vector store"]
+    Chroma --> Hit{Cache Hit?}
+    Hit -- Yes --> Response["Return cached<br/>response"]
+    Hit -- No --> Gemini["Gemini Flash-Lite<br/>LLM"]
+    Gemini --> Store["Store embedding<br/>+ response"]
+    Store --> Response
+    Response --> User
+        </div>
+        <div class="flex flex-wrap gap-2 mt-4 text-xs text-[#8B7355] justify-center">
+          <span class="badge badge-outline border-[#4A2C1A] text-[#D4A574]">Prometheus metrics</span>
+          <span class="badge badge-outline border-[#4A2C1A] text-[#D4A574]">OpenTelemetry traces</span>
+          <span class="badge badge-outline border-[#4A2C1A] text-[#D4A574]">Jaeger visualization</span>
+          <span class="badge badge-outline border-[#4A2C1A] text-[#D4A574]">Graceful shutdown</span>
+          <span class="badge badge-outline border-[#4A2C1A] text-[#D4A574]">K8s deployment</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 Phases -->
+    <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+      <div class="card-body">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">🧱</span>
+          <h2 class="card-title text-[#EAE0D5] text-lg">5 Engineering Phases</h2>
+        </div>
+        <div class="space-y-3">
+          <div class="bg-[#1A0F0A] rounded-xl p-4 border border-[#4A2C1A]">
+            <div class="flex items-center gap-3">
+              <span class="text-[#D4A574] font-mono font-bold text-lg">01</span>
+              <div class="flex-1">
+                <div class="text-[#EAE0D5] font-semibold">Observability &amp; Reliability</div>
+                <div class="text-[#8B7355] text-xs">Structured logging, health checks, graceful shutdown, gRPC health probe</div>
+              </div>
+              <span class="badge bg-[#8B7355]/20 text-[#8B7355] border-[#8B7355]/30 text-xs">✓ Complete</span>
+            </div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-4 border border-[#4A2C1A]">
+            <div class="flex items-center gap-3">
+              <span class="text-[#D4A574] font-mono font-bold text-lg">02</span>
+              <div class="flex-1">
+                <div class="text-[#EAE0D5] font-semibold">Configuration &amp; Portability</div>
+                <div class="text-[#8B7355] text-xs">Pydantic Settings, multi-stage Dockerfiles, docker-compose, ChromaDB volumes</div>
+              </div>
+              <span class="badge bg-[#8B7355]/20 text-[#8B7355] border-[#8B7355]/30 text-xs">✓ Complete</span>
+            </div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-4 border border-[#4A2C1A]">
+            <div class="flex items-center gap-3">
+              <span class="text-[#D4A574] font-mono font-bold text-lg">03</span>
+              <div class="flex-1">
+                <div class="text-[#EAE0D5] font-semibold">Security &amp; Input Validation</div>
+                <div class="text-[#8B7355] text-xs">Input sanitization, gRPC auth interceptor, per-IP token-bucket rate limiter</div>
+              </div>
+              <span class="badge bg-[#8B7355]/20 text-[#8B7355] border-[#8B7355]/30 text-xs">✓ Complete</span>
+            </div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-4 border border-[#4A2C1A]">
+            <div class="flex items-center gap-3">
+              <span class="text-[#D4A574] font-mono font-bold text-lg">04</span>
+              <div class="flex-1">
+                <div class="text-[#EAE0D5] font-semibold">Resilience &amp; Performance</div>
+                <div class="text-[#8B7355] text-xs">3-state circuit breaker, exponential backoff + jitter, gRPC keepalive</div>
+              </div>
+              <span class="badge bg-[#8B7355]/20 text-[#8B7355] border-[#8B7355]/30 text-xs">✓ Complete</span>
+            </div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-4 border border-[#4A2C1A]">
+            <div class="flex items-center gap-3">
+              <span class="text-[#D4A574] font-mono font-bold text-lg">05</span>
+              <div class="flex-1">
+                <div class="text-[#EAE0D5] font-semibold">Deployment &amp; Monitoring</div>
+                <div class="text-[#8B7355] text-xs">11 Prometheus metrics, OTel + Jaeger tracing, GitHub Actions CI/CD, K8s manifests</div>
+              </div>
+              <span class="badge bg-[#8B7355]/20 text-[#8B7355] border-[#8B7355]/30 text-xs">✓ Complete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="card bg-[#2C1810] border border-[#4A2C1A] shadow-xl">
+      <div class="card-body">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">⚙️</span>
+          <h2 class="card-title text-[#EAE0D5] text-lg">Tech Stack</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">Go 1.22</div>
+            <div class="text-[#8B7355] text-xs">HTTP proxy, rate limiter, circuit breaker</div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">Python 3.12</div>
+            <div class="text-[#8B7355] text-xs">Indexer, embeddings, gRPC server</div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">ChromaDB</div>
+            <div class="text-[#8B7355] text-xs">Vector store, similarity search</div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">Gemini Flash</div>
+            <div class="text-[#8B7355] text-xs">LLM for cache miss responses</div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">Prometheus</div>
+            <div class="text-[#8B7355] text-xs">11 metrics across 2 services</div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">OpenTelemetry</div>
+            <div class="text-[#8B7355] text-xs">Distributed tracing + Jaeger</div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">Kubernetes</div>
+            <div class="text-[#8B7355] text-xs">Deployments, services, PVC, secrets</div>
+          </div>
+          <div class="bg-[#1A0F0A] rounded-xl p-3 text-center border border-[#4A2C1A]">
+            <div class="text-[#D4A574] font-bold">GitHub Actions</div>
+            <div class="text-[#8B7355] text-xs">CI/CD — lint, test, build, deploy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center text-[#8B7355] text-xs space-y-1 pt-4 border-t border-[#4A2C1A]">
+      <p>Built with Go, Python, Three.js, and the classic donut.c algorithm.</p>
+      <p>Portfolio page at <a href="https://izhan05803.github.io/A-Semantic-Cache-And-Vector-Meta-Data-Indexer-GO-PYTHON-/project.html" target="_blank" class="text-[#D4A574] hover:underline">project.html</a></p>
+    </div>
+
+  </div>
+</body>
+</html>
