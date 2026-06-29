@@ -47,7 +47,7 @@ A live, browser-based showcase of the entire system — including a **spinning A
 
 ## Architecture
 
-![System Architecture Diagram](assets/architecture.svg)
+![System Architecture Diagram](assets/architecture.png)
 
 **Request flow:**
 1. Client sends query to **Go Proxy** → input validation → rate limit check
