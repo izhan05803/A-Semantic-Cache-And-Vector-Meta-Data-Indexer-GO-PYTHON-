@@ -47,19 +47,7 @@ A live, browser-based showcase of the entire system — including a **spinning A
 
 ## Architecture
 
-```
-┌──────────────┐     gRPC      ┌────────────────┐     embed     ┌──────────┐
-│  Go Proxy    │ ──────────→   │ Python Indexer │ ───────────→  │ ChromaDB │
-│  HTTP :8080  │ ←──────────   │ gRPC :50051    │ ←───────────  │ vectors  │
-│  /chat       │   response    │                │               └──────────┘
-│  /healthz    │               │                │
-│  /metrics    │               │                │     miss →    ┌──────────┐
-└──────────────┘               │                │ ───────────→  │ Gemini   │
-      │   ↑                    └────────────────┘               │ Flash-Lite│
-      │   │                                                      └──────────┘
-      │   └── rate limiter, circuit breaker, retry + jitter
-      └────── input validation, auth interceptor, keepalive
-```
+![System Architecture Diagram](assets/architecture.svg)
 
 **Request flow:**
 1. Client sends query to **Go Proxy** → input validation → rate limit check
