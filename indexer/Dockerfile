@@ -19,8 +19,8 @@ COPY . .
 # Set environment variable for persistent storage
 ENV CHROMA_DB_PATH=/data/chroma_db
 
-# Expose gRPC port
-EXPOSE 50051
+# Expose gRPC and metrics ports
+EXPOSE 50051 8000
 
 # Run the server
 CMD ["python", "server.py"]

@@ -9,6 +9,10 @@ import (
 	"os"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"semantic-cache-proxy/internal/cache"
 	"semantic-cache-proxy/internal/circuitbreaker"
 	"semantic-cache-proxy/internal/retry"
@@ -16,6 +20,8 @@ import (
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
+
+var tracer = otel.Tracer("semantic-cache-proxy")
 
 const maxPromptLength = 100000
 
@@ -25,9 +31,10 @@ type Handler struct {
 	cacheBreaker     *circuitbreaker.Breaker
 	geminiBreaker    *circuitbreaker.Breaker
 	geminiRetry      retry.Config
+	metrics          *Metrics
 }
 
-func NewHandler(c *cache.Client) (*Handler, error) {
+func NewHandler(c *cache.Client, m *Metrics) (*Handler, error) {
 	apiKey := os.Getenv("GOOGLE_API_KEY")
 	if apiKey == "" {
 		return nil, fmt.Errorf("GOOGLE_API_KEY environment variable not set")
@@ -50,6 +57,7 @@ func NewHandler(c *cache.Client) (*Handler, error) {
 			BaseDelay:  500 * time.Millisecond,
 			MaxDelay:   5 * time.Second,
 		},
+		metrics: m,
 	}, nil
 }
 
@@ -66,54 +74,87 @@ type ChatResponse struct {
 	Score    float32 `json:"score"`
 }
 
+func statusClass(code int) string {
+	switch {
+	case code >= 200 && code < 300:
+		return "2xx"
+	case code >= 300 && code < 400:
+		return "3xx"
+	case code >= 400 && code < 500:
+		return "4xx"
+	default:
+		return "5xx"
+	}
+}
+
 // HandleChat processes incoming chat requests
 func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	status := http.StatusOK
+
+	defer func() {
+		h.metrics.RequestsTotal.WithLabelValues("chat", statusClass(status)).Inc()
+		h.metrics.RequestDuration.WithLabelValues("chat").Observe(time.Since(start).Seconds())
+	}()
+
 	if r.Method != http.MethodPost {
+		status = http.StatusMethodNotAllowed
 		http.Error(w, "only POST allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var req ChatRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		status = http.StatusBadRequest
 		http.Error(w, "invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
 	if req.Prompt == "" {
+		status = http.StatusBadRequest
 		http.Error(w, "prompt is required", http.StatusBadRequest)
 		return
 	}
 
 	if len(req.Prompt) > maxPromptLength {
+		status = http.StatusBadRequest
 		slog.Warn("Prompt too long", "length", len(req.Prompt), "max", maxPromptLength)
 		http.Error(w, "prompt exceeds maximum length", http.StatusBadRequest)
 		return
 	}
 
-	// Use default threshold if not provided
 	threshold := req.Threshold
 	if threshold == 0 {
 		threshold = 0.5
 	}
 
-	ctx := context.Background()
+	ctx, span := tracer.Start(context.Background(), "HandleChat",
+		trace.WithAttributes(attribute.String("prompt", req.Prompt[:min(len(req.Prompt), 100)])))
+	defer span.End()
 
-	// Step 1: Check the semantic cache via gRPC (with circuit breaker)
+	h.metrics.CircuitBreakerOpen.WithLabelValues("cache").Set(float64(h.cacheBreaker.State()))
+	h.metrics.CircuitBreakerOpen.WithLabelValues("gemini").Set(float64(h.geminiBreaker.State()))
+
 	var hit bool
 	var cachedResponse string
 	var score float32
+	cacheSpanCtx, cacheSpan := tracer.Start(ctx, "CheckCache")
 	if err := h.cacheBreaker.Execute(func() error {
 		var e error
-		hit, cachedResponse, score, e = h.cacheClient.CheckCache(ctx, req.Prompt, threshold)
+		hit, cachedResponse, score, e = h.cacheClient.CheckCache(cacheSpanCtx, req.Prompt, threshold)
 		return e
 	}); err != nil {
+		cacheSpan.End()
+		status = http.StatusInternalServerError
 		slog.Error("Cache check error", "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
+	cacheSpan.SetAttributes(attribute.Bool("hit", hit))
+	cacheSpan.End()
 
-	// Step 2: If cache hit, return immediately
 	if hit {
+		h.metrics.CacheHitsTotal.Inc()
 		resp := ChatResponse{
 			Response: cachedResponse,
 			Cached:   true,
@@ -125,14 +166,19 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Step 3: Cache miss — Call Google AI Studio (Gemini) with retry + circuit breaker
+	h.metrics.CacheMissesTotal.Inc()
+
 	var llmResponse string
+	geminiSpanCtx, geminiSpan := tracer.Start(ctx, "GenerateContent")
 	if err := h.geminiBreaker.Execute(func() error {
 		return retry.ExponentialBackoff(h.geminiRetry, func() error {
+			geminiStart := time.Now()
 			model := h.geminiClient.GenerativeModel("gemini-flash-lite-latest")
 			model.SetTemperature(0.7)
 
-			response, err := model.GenerateContent(ctx, genai.Text(req.Prompt))
+			response, err := model.GenerateContent(geminiSpanCtx, genai.Text(req.Prompt))
+			h.metrics.GeminiDuration.Observe(time.Since(geminiStart).Seconds())
+
 			if err != nil {
 				slog.Warn("Gemini call failed, will retry", "error", err)
 				return err
@@ -152,12 +198,15 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 			return nil
 		})
 	}); err != nil {
+		geminiSpan.End()
+		status = http.StatusInternalServerError
 		slog.Error("Gemini error after retries", "error", err)
 		http.Error(w, "failed to get response from LLM", http.StatusInternalServerError)
 		return
 	}
+	geminiSpan.SetAttributes(attribute.Int("response_len", len(llmResponse)))
+	geminiSpan.End()
 
-	// Step 4: Store the new response in the cache for future requests (with circuit breaker)
 	if err := h.cacheBreaker.Execute(func() error {
 		success, e := h.cacheClient.UpdateCache(ctx, req.Prompt, llmResponse, nil)
 		if e != nil {
@@ -169,7 +218,6 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 		slog.Error("Cache update error", "error", err)
 	}
 
-	// Step 5: Return the LLM response
 	resp := ChatResponse{
 		Response: llmResponse,
 		Cached:   false,

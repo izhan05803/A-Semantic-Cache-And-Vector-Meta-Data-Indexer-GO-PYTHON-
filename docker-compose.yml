@@ -1,13 +1,26 @@
 services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - cache-net
+
   indexer:
     build:
       context: ./indexer
     ports:
       - "50051:50051"
+      - "8000:8000"
     volumes:
       - chroma_data:/data/chroma_db
     environment:
       - CHROMA_DB_PATH=/data/chroma_db
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     networks:
       - cache-net
 
@@ -21,6 +34,7 @@ services:
     environment:
       - INDEXER_ADDR=indexer:50051
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=jaeger:4317
     networks:
       - cache-net
 

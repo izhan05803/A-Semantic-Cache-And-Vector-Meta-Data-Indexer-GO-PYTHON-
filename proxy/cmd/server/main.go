@@ -9,10 +9,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/time/rate"
 
 	"semantic-cache-proxy/internal/cache"
 	"semantic-cache-proxy/internal/proxy"
+	"semantic-cache-proxy/internal/tracing"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +27,18 @@ func main() {
 	// Structured logger
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	slog.SetDefault(logger)
+
+	// Initialize OpenTelemetry tracing
+	tp, err := tracing.InitTracer()
+	if err != nil {
+		slog.Warn("Failed to initialize tracer, continuing without tracing", "error", err)
+	} else {
+		defer func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			tp.Shutdown(ctx)
+		}()
+	}
 
 	// Connect to the Python Indexer gRPC server
 	indexerAddr := os.Getenv("INDEXER_ADDR")
@@ -39,8 +53,11 @@ func main() {
 	defer cacheClient.Close()
 	slog.Info("Connected to Python Indexer", "addr", indexerAddr)
 
+	// Create Prometheus metrics
+	metrics := proxy.NewMetrics()
+
 	// Create the proxy handler with the cache client
-	proxyHandler, err := proxy.NewHandler(cacheClient)
+	proxyHandler, err := proxy.NewHandler(cacheClient, metrics)
 	if err != nil {
 		slog.Error("Failed to create proxy handler", "error", err)
 		os.Exit(1)
@@ -49,6 +66,7 @@ func main() {
 	// Set up HTTP routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", healthHandler)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	// Rate limiter: 10 req/s per IP, burst 20, cleanup stale entries every 10 min
 	rl := proxy.NewRateLimiter(rate.Limit(10), 20, 10*time.Minute)

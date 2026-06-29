@@ -23,6 +23,8 @@ from proto_gen import cache_service_pb2
 from proto_gen import cache_service_pb2_grpc
 from indexer import Indexer
 from config import settings
+from metrics import REQUESTS_TOTAL, CACHE_HITS, CACHE_MISSES, UPDATES_TOTAL, REQUEST_DURATION, start_metrics_server
+from tracing import init_tracing
 
 class CacheService(cache_service_pb2_grpc.CacheServiceServicer):
     def __init__(self):
@@ -30,18 +32,27 @@ class CacheService(cache_service_pb2_grpc.CacheServiceServicer):
 
     def CheckCache(self, request, context):
         logger.info(f"Received CheckCache request for prompt: {request.prompt[:50]}...")
-        response_content = self.indexer.search_cache(request.prompt, request.similarity_threshold)
+        REQUESTS_TOTAL.labels(method="CheckCache").inc()
+
+        with REQUEST_DURATION.labels(method="CheckCache").time():
+            response_content = self.indexer.search_cache(request.prompt, request.similarity_threshold)
 
         if response_content:
+            CACHE_HITS.inc()
             logger.info("Cache hit")
             return cache_service_pb2.CacheResponse(hit=True, response=response_content, score=1.0)
         else:
+            CACHE_MISSES.inc()
             logger.info("Cache miss")
             return cache_service_pb2.CacheResponse(hit=False, response="", score=0.0)
 
     def UpdateCache(self, request, context):
         logger.info(f"Received UpdateCache request for prompt: {request.prompt[:50]}...")
-        self.indexer.add_to_cache(request.prompt, request.response, dict(request.metadata))
+        REQUESTS_TOTAL.labels(method="UpdateCache").inc()
+        UPDATES_TOTAL.inc()
+
+        with REQUEST_DURATION.labels(method="UpdateCache").time():
+            self.indexer.add_to_cache(request.prompt, request.response, dict(request.metadata))
         return cache_service_pb2.UpdateResponse(success=True)
 
 
@@ -83,6 +94,9 @@ class AuthInterceptor(grpc.ServerInterceptor):
 
 
 def serve():
+    init_tracing()
+    start_metrics_server(settings.METRICS_PORT)
+
     api_key = settings.INDEXER_API_KEY
     if not api_key:
         logger.warning("INDEXER_API_KEY not set — gRPC auth disabled")
