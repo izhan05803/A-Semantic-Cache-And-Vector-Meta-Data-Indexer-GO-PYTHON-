@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Cache · Donut Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #1A0F0A;
+            --panel: #2C1810;
+            --border: #4A2C1A;
+            --accent: #D4A574;
+            --accent2: #C4956A;
+            --complete: #8B7355;
+            --text: #EAE0D5;
+            --muted: #8B7355;
+            --donut: #A0522D;
+        }
+        html { background: var(--bg); scroll-behavior: smooth; }
+        body {
+            font-family: system-ui, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            overflow-x: hidden;
+        }
+
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+        }
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .section-sub {
+            font-size: 15px;
+            color: var(--muted);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            line-height: 1.7;
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg);
+        }
+        #donut-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 0;
+            pointer-events: none;
+        }
+        #d {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 9px;
+            color: var(--donut);
+            white-space: pre;
+            letter-spacing: 0;
+            opacity: 0.9;
+            user-select: none;
+        }
+        .hero-overlay {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            margin: 3rem;
+            padding: 2.5rem 3rem;
+            background: rgba(26,15,10,0.85);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+        .hero-eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        .hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 1.2rem;
+        }
+        .hero-title span { color: var(--accent); }
+        .hero-desc {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            max-width: 400px;
+        }
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1.5rem;
+        }
+        .badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--muted);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #1A0F0A;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(212,165,116,0.3); }
+        .btn-ghost {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .btn-ghost:hover { background: rgba(212,165,116,0.1); }
+        .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            opacity: 0.5;
+            animation: bob 2s ease-in-out infinite;
+        }
+        .scroll-indicator .arrow { font-size: 18px; line-height: 1; }
+        @keyframes bob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+        /* ─── DEMO ─── */
+        .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 900px) { .demo-grid { grid-template-columns: 1fr; } }
+        .demo-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .demo-card-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+        .query-input { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .query-input input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text);
+            outline: none;
+        }
+        .query-input input:focus { border-color: var(--accent); }
+        .query-input input::placeholder { color: var(--muted); }
+        .result-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 80px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .result-box .hit { color: var(--complete); }
+        .result-box .miss { color: var(--accent); }
+        .result-box .muted { color: var(--muted); }
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            padding: 0.5rem 0;
+        }
+        .flow-node {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--muted);
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .flow-node.active { border-color: var(--accent); color: var(--accent); background: rgba(212,165,116,0.1); }
+        .flow-node.hit { border-color: var(--complete); color: var(--complete); background: rgba(139,115,85,0.08); }
+        .flow-node.miss { border-color: var(--accent2); color: var(--accent2); background: rgba(196,149,106,0.08); }
+        .flow-arrow { font-size: 14px; color: var(--muted); }
+
+        /* ─── METRICS ─── */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
+        .metric-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        .metric-card:hover { border-color: var(--accent); }
+        .metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.2;
+        }
+        .metric-value.hitrate { color: var(--complete); }
+        .metric-value.amber { color: var(--accent2); }
+        .metric-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 0.3rem;
+        }
+        .metric-sub { font-size: 10px; color: var(--muted); margin-top: 0.2rem; }
+        .metric-bar {
+            width: 100%; height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+        .metric-bar-fill {
+            height: 100%; border-radius: 2px;
+            transition: width 0.5s ease;
+            background: linear-gradient(90deg, var(--accent2), var(--accent));
+        }
+
+        /* ─── ARCHITECTURE ─── */
+        .arch-svg { width: 100%; max-width: 900px; margin: 0 auto; display: block; }
+
+        /* ─── PHASES ─── */
+        .phases-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .phase-row {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.2rem 1.5rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .phase-row:hover { border-color: var(--accent); transform: translateX(4px); }
+        .phase-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent);
+            min-width: 60px;
+        }
+        .phase-info { flex: 1; }
+        .phase-name { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
+        .phase-desc { font-size: 13px; color: var(--muted); margin-top: 0.2rem; }
+        .phase-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            background: rgba(139,115,85,0.1);
+            color: var(--complete);
+            border: 1px solid rgba(139,115,85,0.2);
+        }
+
+        .footer { text-align: center; padding: 3rem 2rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .section { padding: 3rem 1rem; }
+            #d { font-size: 5px !important; line-height: 4.5px !important; }
+            #donut-container { align-items: flex-start; padding-top: 2rem; }
+            .hero-overlay { margin: 1rem; padding: 1.5rem; max-width: 100%; }
+            .phase-row { flex-wrap: wrap; gap: 0.5rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,*::before,*::after { animation-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body>
+
+<section class="hero">
+    <div id="donut-container"><pre id="d"></pre></div>
+    <div class="hero-overlay">
+        <div class="hero-eyebrow">Engineering Build Log</div>
+        <h1 class="hero-title">Semantic Cache<br>&amp; <span>Vector Metadata Indexer</span></h1>
+        <p class="hero-desc">Go + Python · ChromaDB · Gemini LLM · Prometheus · OTel · K8s</p>
+        <div class="hero-badges">
+            <span class="badge">Go 1.22</span>
+            <span class="badge">Python 3.12</span>
+            <span class="badge">ChromaDB</span>
+            <span class="badge">Gemini Flash</span>
+            <span class="badge">gRPC</span>
+            <span class="badge">Kubernetes</span>
+            <span class="badge">Prometheus</span>
+            <span class="badge">OTel</span>
+        </div>
+        <div class="btn-group">
+            <a href="#demo" class="btn btn-primary">▶ Try Demo</a>
+            <a href="#metrics" class="btn btn-ghost">Metrics</a>
+        </div>
+    </div>
+    <div class="scroll-indicator"><span class="arrow">▼</span><span>scroll</span></div>
+</section>
+
+<section class="section" id="demo">
+    <h2 class="section-title">▶ Live Demo</h2>
+    <p class="section-sub">Simulate a cache query. Watch the request trace through each service.</p>
+    <div class="demo-grid">
+        <div class="demo-card">
+            <div class="demo-card-title">Query</div>
+            <div class="query-input">
+                <input type="text" id="queryInput" value="what is the capital of France?" placeholder="Ask something...">
+                <button class="btn btn-primary" id="sendBtn">Send</button>
+            </div>
+            <div class="result-box" id="resultBox"><span class="muted">▼ Send a query</span></div>
+        </div>
+        <div class="demo-card">
+            <div class="demo-card-title">Request Flow</div>
+            <div class="flow" id="flow">
+                <span class="flow-node" id="f-proxy">Go<br>Proxy</span><span class="flow-arrow">→</span>
+                <span class="flow-node" id="f-cache">Cache<br>Check</span><span class="flow-arrow">→</span>
+                <span class="flow-node" id="f-indexer">Python<br>Indexer</span><span class="flow-arrow">→</span>
+                <span class="flow-node" id="f-chroma">ChromaDB</span>
+                <span class="flow-arrow" id="gemini-arrow" style="display:none;">→</span>
+                <span class="flow-node" id="f-gemini" style="display:none;">Gemini<br>LLM</span>
+            </div>
+            <div style="margin-top:0.8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-align:center;" id="flowStatus">Ready</div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="metrics">
+    <h2 class="section-title">📊 Live Metrics</h2>
+    <p class="section-sub">Real-time telemetry from Go proxy and Python indexer.</p>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value hitrate" id="m-hitrate">0%</div>
+            <div class="metric-label">Cache Hit Rate</div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="m-hitrate-bar" style="width:0%"></div></div>
+        </div>
+        <div class="metric-card"><div class="metric-value" id="m-hits">0</div><div class="metric-label">Cache Hits</div><div class="metric-sub">proxy_cache_hits_total</div></div>
+        <div class="metric-card"><div class="metric-value amber" id="m-misses">0</div><div class="metric-label">Cache Misses</div><div class="metric-sub">proxy_cache_misses_total</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-latency">0ms</div><div class="metric-label">Avg Response Time</div><div class="metric-sub">proxy_request_duration_ms</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-circuit" style="font-size:clamp(1rem,1.8vw,1.4rem);color:var(--complete);">● Closed</div><div class="metric-label">Circuit Breaker</div><div class="metric-sub">proxy_circuit_breaker_state</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-total">0</div><div class="metric-label">Total Requests</div><div class="metric-sub">proxy_requests_total</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-updates">0</div><div class="metric-label">Cache Updates</div><div class="metric-sub">indexer_cache_updates_total</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-gemini-latency">0ms</div><div class="metric-label">Gemini Latency</div><div class="metric-sub">proxy_gemini_request_duration_ms</div></div>
+    </div>
+</section>
+
+<section class="section" id="architecture">
+    <h2 class="section-title">🏗️ Architecture</h2>
+    <p class="section-sub">Go HTTP proxy → gRPC → Python indexer → ChromaDB / Gemini LLM.</p>
+    <svg class="arch-svg" viewBox="0 0 900 260" fill="none">
+        <defs>
+            <linearGradient id="g-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#D4A574"/><stop offset="100%" stop-color="#C4956A"/></linearGradient>
+        </defs>
+        <rect x="0" y="0" width="900" height="260" rx="16" fill="#2C1810" stroke="#4A2C1A" stroke-width="1"/>
+        <rect x="50" y="60" width="140" height="60" rx="8" fill="#1A0F0A" stroke="#D4A574" stroke-width="1.5"/>
+        <text x="120" y="88" text-anchor="middle" fill="#EAE0D5" font-family="sans-serif" font-size="14" font-weight="600">Go Proxy</text>
+        <text x="120" y="105" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="10">HTTP :8080</text>
+        <line x1="190" y1="90" x2="260" y2="90" stroke="#4A2C1A" stroke-width="1.5"/>
+        <polygon points="256,85 266,90 256,95" fill="#4A2C1A"/>
+        <text x="225" y="80" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="8">gRPC</text>
+        <rect x="270" y="60" width="140" height="60" rx="8" fill="#1A0F0A" stroke="#D4A574" stroke-width="1.5"/>
+        <text x="340" y="88" text-anchor="middle" fill="#EAE0D5" font-family="sans-serif" font-size="14" font-weight="600">Python Indexer</text>
+        <text x="340" y="105" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="10">gRPC :50051</text>
+        <line x1="410" y1="75" x2="480" y2="50" stroke="#4A2C1A" stroke-width="1.5"/>
+        <polygon points="476,47 486,50 476,55" fill="#4A2C1A"/>
+        <text x="445" y="58" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="8">embed</text>
+        <rect x="490" y="20" width="140" height="60" rx="8" fill="#1A0F0A" stroke="#D4A574" stroke-width="1.5"/>
+        <text x="560" y="48" text-anchor="middle" fill="#EAE0D5" font-family="sans-serif" font-size="14" font-weight="600">ChromaDB</text>
+        <text x="560" y="65" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="10">vector store</text>
+        <line x1="410" y1="105" x2="480" y2="130" stroke="#4A2C1A" stroke-width="1.5"/>
+        <polygon points="476,127 486,130 476,135" fill="#4A2C1A"/>
+        <text x="445" y="122" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="8">miss →</text>
+        <rect x="490" y="100" width="140" height="60" rx="8" fill="#1A0F0A" stroke="url(#g-accent)" stroke-width="1.5"/>
+        <text x="560" y="128" text-anchor="middle" fill="#EAE0D5" font-family="sans-serif" font-size="14" font-weight="600">Gemini LLM</text>
+        <text x="560" y="145" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="10">Flash-Lite</text>
+        <path d="M 630 90 L 700 90 Q 710 90 710 100 L 710 180 Q 710 190 700 190 L 120 190 Q 110 190 110 180 L 110 125" stroke="#8B7355" stroke-width="1.5" stroke-dasharray="4 3" fill="none" opacity="0.5"/>
+        <text x="710" y="178" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="8">response →</text>
+        <text x="120" y="170" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="9">rate limiter</text>
+        <text x="120" y="182" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="9">circuit breaker</text>
+        <text x="340" y="170" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="9">auth interceptor</text>
+        <text x="340" y="182" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="9">embed + search</text>
+        <rect x="670" y="60" width="200" height="55" rx="6" fill="rgba(0,0,0,0.3)" stroke="#4A2C1A" stroke-width="0.5"/>
+        <text x="770" y="78" text-anchor="middle" fill="#8B7355" font-family="monospace" font-size="8">PROMETHEUS METRICS</text>
+        <text x="685" y="94" fill="#8B7355" font-family="monospace" font-size="8">● proxy_cache_hits_total</text>
+        <text x="685" y="106" fill="#8B7355" font-family="monospace" font-size="8">● proxy_cache_misses_total</text>
+        <rect x="50" y="210" width="800" height="30" rx="6" fill="rgba(0,0,0,0.3)" stroke="#4A2C1A" stroke-width="0.5"/>
+        <text x="70" y="229" fill="#8B7355" font-family="monospace" font-size="9">PHASES:</text>
+        <text x="150" y="229" fill="#8B7355" font-family="monospace" font-size="9">● 01 Obs</text>
+        <text x="270" y="229" fill="#8B7355" font-family="monospace" font-size="9">● 02 Config</text>
+        <text x="410" y="229" fill="#8B7355" font-family="monospace" font-size="9">● 03 Security</text>
+        <text x="550" y="229" fill="#8B7355" font-family="monospace" font-size="9">● 04 Resilience</text>
+        <text x="690" y="229" fill="#8B7355" font-family="monospace" font-size="9">● 05 Deploy</text>
+    </svg>
+</section>
+
+<section class="section" id="phases">
+    <h2 class="section-title">🧱 Engineering Phases</h2>
+    <p class="section-sub">Five phases from foundation to production.</p>
+    <div class="phases-list">
+        <div class="phase-row"><div class="phase-num">01</div><div class="phase-info"><div class="phase-name">Observability &amp; Reliability</div><div class="phase-desc">Structured logging, health checks, graceful shutdown, gRPC health probe</div></div><span class="phase-status">✓ Complete</span></div>
+        <div class="phase-row"><div class="phase-num">02</div><div class="phase-info"><div class="phase-name">Configuration &amp; Portability</div><div class="phase-desc">Pydantic Settings, multi-stage Dockerfiles, docker-compose, portable volumes</div></div><span class="phase-status">✓ Complete</span></div>
+        <div class="phase-row"><div class="phase-num">03</div><div class="phase-info"><div class="phase-name">Security &amp; Input Validation</div><div class="phase-desc">Input sanitization, gRPC auth interceptor, per-IP token-bucket rate limiter</div></div><span class="phase-status">✓ Complete</span></div>
+        <div class="phase-row"><div class="phase-num">04</div><div class="phase-info"><div class="phase-name">Resilience &amp; Performance</div><div class="phase-desc">3-state circuit breaker, exponential backoff + jitter, gRPC keepalive</div></div><span class="phase-status">✓ Complete</span></div>
+        <div class="phase-row"><div class="phase-num">05</div><div class="phase-info"><div class="phase-name">Deployment &amp; Monitoring</div><div class="phase-desc">Prometheus metrics (6 Go + 5 Python), OTel tracing, GitHub Actions CI/CD, K8s manifests</div></div><span class="phase-status">✓ Complete</span></div>
+    </div>
+</section>
+
+<footer class="footer">
+    <p style="color:var(--muted);font-size:14px;">Built with Go, Python &amp; ASCII · <a href="https://github.com/Izhan-A/semantic-cache" target="_blank">View on GitHub</a></p>
+</footer>
+
+<script>
+// ─── SPINNING DONUT (original algorithm) ───
+(function() {
+    var pretag = document.getElementById('d');
+    if (!pretag) return;
+    var A = 1, B = 1;
+
+    function asciiframe() {
+        var b = [];
+        var z = [];
+        A += 0.07;
+        B += 0.03;
+        var cA = Math.cos(A), sA = Math.sin(A),
+            cB = Math.cos(B), sB = Math.sin(B);
+        for (var k = 0; k < 1760; k++) {
+            b[k] = k % 80 == 79 ? "\n" : " ";
+            z[k] = 0;
+        }
+        for (var j = 0; j < 6.28; j += 0.07) {
+            var ct = Math.cos(j), st = Math.sin(j);
+            for (var i = 0; i < 6.28; i += 0.02) {
+                var sp = Math.sin(i), cp = Math.cos(i),
+                    h = ct + 2,
+                    D = 1 / (sp * h * sA + st * cA + 5),
+                    t = sp * h * cA - st * sA;
+                var x = 0 | (40 + 30 * D * (cp * h * cB - t * sB)),
+                    y = 0 | (12 + 15 * D * (cp * h * sB + t * cB)),
+                    o = x + 80 * y,
+                    N = 0 | (8 * ((st * sA - sp * ct * cA) * cB - sp * ct * sA - st * cA - cp * ct * sB));
+                if (y < 22 && y >= 0 && x >= 0 && x < 79 && D > z[o]) {
+                    z[o] = D;
+                    b[o] = ".,-~:;=!*#$@"[N > 0 ? N : 0];
+                }
+            }
+        }
+        pretag.innerHTML = b.join("");
+    }
+
+    setInterval(asciiframe, 50);
+})();
+
+// ─── DEMO & METRICS ───
+const metrics = { hits: 47, misses: 13, total: 60, latency: 142, geminiLatency: 680, updates: 19, circuitState: 0 };
+
+function updateUI() {
+    const hr = metrics.total > 0 ? Math.round((metrics.hits / metrics.total) * 100) : 0;
+    document.getElementById('m-hitrate').textContent = hr + '%';
+    document.getElementById('m-hitrate-bar').style.width = hr + '%';
+    document.getElementById('m-hits').textContent = metrics.hits;
+    document.getElementById('m-misses').textContent = metrics.misses;
+    document.getElementById('m-total').textContent = metrics.total;
+    document.getElementById('m-updates').textContent = metrics.updates;
+    document.getElementById('m-latency').textContent = metrics.latency + 'ms';
+    document.getElementById('m-gemini-latency').textContent = metrics.geminiLatency + 'ms';
+    const el = document.getElementById('m-circuit');
+    const s = ['● Closed','● Open','● Half-Open'];
+    const c = ['var(--complete)','var(--accent2)','var(--accent)'];
+    el.textContent = s[metrics.circuitState];
+    el.style.color = c[metrics.circuitState];
+}
+
+async function animateFlow(isHit) {
+    const nodes = ['f-proxy','f-cache','f-indexer','f-chroma'];
+    const st = document.getElementById('flowStatus');
+    for (const id of nodes) { document.getElementById(id).className = 'flow-node active'; await new Promise(r => setTimeout(r, 300)); }
+    if (isHit) {
+        document.getElementById('f-cache').className = 'flow-node hit';
+        document.getElementById('f-indexer').className = 'flow-node';
+        document.getElementById('f-chroma').className = 'flow-node';
+        st.textContent = '✓ Cache HIT — returning cached result';
+        st.style.color = 'var(--complete)';
+    } else {
+        document.getElementById('f-cache').className = 'flow-node miss';
+        document.getElementById('f-indexer').className = 'flow-node active';
+        document.getElementById('f-chroma').className = 'flow-node active';
+        await new Promise(r => setTimeout(r, 350));
+        document.getElementById('gemini-arrow').style.display = 'inline';
+        document.getElementById('f-gemini').style.display = 'inline';
+        document.getElementById('f-gemini').className = 'flow-node active';
+        st.textContent = '✗ Cache MISS — querying Gemini LLM...';
+        st.style.color = 'var(--accent2)';
+        await new Promise(r => setTimeout(r, 700));
+        document.getElementById('f-gemini').className = 'flow-node miss';
+        document.getElementById('f-chroma').className = 'flow-node hit';
+        st.textContent = '✓ Response stored in ChromaDB';
+        st.style.color = 'var(--complete)';
+    }
+    setTimeout(() => {
+        [...nodes,'f-gemini'].forEach(id => { const e = document.getElementById(id); if (e) e.className = 'flow-node'; });
+        document.getElementById('gemini-arrow').style.display = 'none';
+        document.getElementById('f-gemini').style.display = 'none';
+        st.textContent = 'Ready';
+        st.style.color = 'var(--muted)';
+    }, 1000);
+}
+
+async function sendQuery() {
+    const input = document.getElementById('queryInput'), resultBox = document.getElementById('resultBox'), btn = document.getElementById('sendBtn');
+    const query = input.value.trim() || 'what is the capital of France?';
+    btn.disabled = true; btn.textContent = '...';
+    const isHit = Math.random() < 0.65;
+    const score = isHit ? (0.85 + Math.random() * 0.15) : 0;
+    const rt = isHit ? Math.floor(Math.random() * 37 + 8) : Math.floor(Math.random() * 580 + 320);
+    if (isHit) { metrics.hits++; metrics.latency = Math.round((metrics.latency * metrics.total + rt) / (metrics.total + 1)); }
+    else { metrics.misses++; metrics.latency = Math.round((metrics.latency * metrics.total + rt) / (metrics.total + 1)); metrics.geminiLatency = Math.floor(Math.random() * 500 + 400); metrics.updates++; }
+    metrics.total++;
+    if (metrics.total % 7 === 0) metrics.circuitState = (metrics.circuitState + 1) % 3;
+    updateUI();
+    animateFlow(isHit);
+    await new Promise(r => setTimeout(r, isHit ? 1300 : 2200));
+    resultBox.innerHTML = isHit
+        ? `<span class="hit">● CACHE HIT</span><br><span class="muted">query:</span> "${query}"<br><span class="muted">score:</span> ${score.toFixed(3)}<br><span class="muted">response:</span> ${rt}ms<br><span class="muted">source:</span> ChromaDB (cached)`
+        : `<span class="miss">● CACHE MISS → Gemini LLM</span><br><span class="muted">query:</span> "${query}"<br><span class="muted">score:</span> ${score.toFixed(3)}<br><span class="muted">response:</span> ${rt}ms<br><span class="muted">source:</span> Gemini Flash-Lite (now cached)`;
+    btn.disabled = false; btn.textContent = 'Send';
+}
+
+setTimeout(() => document.getElementById('sendBtn').click(), 1200);
+document.getElementById('sendBtn').addEventListener('click', sendQuery);
+document.getElementById('queryInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendQuery(); });
+setInterval(() => {
+    if (Math.random() < 0.3) {
+        const isHit = Math.random() < 0.7;
+        if (isHit) metrics.hits++; else { metrics.misses++; metrics.updates++; }
+        metrics.total++;
+        metrics.latency = Math.round(metrics.latency * 0.9 + Math.floor(Math.random() * 40 + 10) * 0.1);
+        metrics.geminiLatency = Math.round(metrics.geminiLatency * 0.9 + Math.floor(Math.random() * 400 + 400) * 0.1);
+        updateUI();
+    }
+}, 3000);
+updateUI();
+</script>
+</body>
+</html>
