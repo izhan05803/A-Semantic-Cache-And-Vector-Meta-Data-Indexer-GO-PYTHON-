@@ -145,10 +145,9 @@ func (h *Handler) HandleChat(w http.ResponseWriter, r *http.Request) {
 		return e
 	}); err != nil {
 		cacheSpan.End()
-		status = http.StatusInternalServerError
-		slog.Error("Cache check error", "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
+		slog.Warn("Cache unavailable, falling through to Gemini", "error", err)
+		// treat as cache miss
+		hit = false
 	}
 	cacheSpan.SetAttributes(attribute.Bool("hit", hit))
 	cacheSpan.End()
