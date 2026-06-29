@@ -506,9 +506,9 @@
 })();
 
 // ─── CONFIG ───
-// Set this to your deployed backend URL (Lambda Function URL, Railway, etc.)
-// Leave empty to use simulated answers.
-const BACKEND_URL = '';
+// Set to your Netlify function base path, or leave empty for simulation.
+// Example: const BACKEND_URL = '/.netlify/functions';
+const BACKEND_URL = '/.netlify/functions';
 
 // ─── DEMO & METRICS ───
 const metrics = { hits: 47, misses: 13, total: 60, latency: 142, geminiLatency: 680, updates: 19, circuitState: 0 };
