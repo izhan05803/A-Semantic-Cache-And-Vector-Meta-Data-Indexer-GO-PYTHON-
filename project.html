@@ -562,25 +562,101 @@ async function animateFlow(isHit) {
     }, 800);
 }
 
+const ANSWERS = {
+    'what is the capital of france?': 'The capital of France is Paris.',
+    'capital of france': 'The capital of France is Paris.',
+    'france capital': 'The capital of France is Paris.',
+    'symbol for gold': 'The chemical symbol for gold is Au (from Latin aurum).',
+    'what is the symbol for gold': 'The chemical symbol for gold is Au (from Latin aurum).',
+    'symbol for gold on periodic table': 'Au — from the Latin word aurum, meaning "shining dawn."',
+    'explain quantum entanglement': 'Quantum entanglement is a phenomenon where two particles become correlated such that measuring one instantly determines the state of the other, regardless of distance. Einstein called it "spooky action at a distance."',
+    'what is quantum entanglement': 'Quantum entanglement links particles so their states are interdependent. Measuring one collapses the other\'s state instantly, even across vast distances.',
+    'speed of light': 'The speed of light in vacuum is exactly 299,792,458 meters per second (≈ 3.00 × 10⁸ m/s).',
+    'what is the speed of light': '299,792,458 m/s — roughly 671 million miles per hour.',
+    'who wrote the iliad': 'The Iliad was written by the ancient Greek poet Homer around the 8th century BCE.',
+    'iliad author': 'Homer, the ancient Greek poet, composed the Iliad in the 8th century BCE.',
+    'define recursion': 'Recursion is a programming technique where a function calls itself to solve smaller instances of the same problem, with a base case to terminate the chain.',
+    'recursion in programming': 'A function that calls itself. Every recursive function needs a base case (to stop) and a recursive case (to continue). Example: factorial(n) = n × factorial(n-1).',
+    'boiling point of water': 'Water boils at 100°C (212°F) at standard atmospheric pressure (sea level). At higher altitudes, the boiling point decreases.',
+    'what is the boiling point of water': '100°C (212°F) at sea level. Lower at higher altitudes due to reduced atmospheric pressure.',
+    'derivative of x^2': 'The derivative of x² is 2x. Using the power rule: d/dx[xⁿ] = n·xⁿ⁻¹.',
+    'what is the derivative of x^2': '2x. By the power rule: bring down the exponent (2) and subtract one from it → 2x.',
+    'who painted the mona lisa': 'The Mona Lisa was painted by Leonardo da Vinci between 1503 and 1519. It resides in the Louvre Museum in Paris.',
+    'mona lisa': 'Painted by Leonardo da Vinci (1503–1519). Housed in the Louvre, Paris.',
+    'largest planet': 'Jupiter is the largest planet in our solar system, with a diameter of about 139,820 km — more than 11 times Earth\'s diameter.',
+    'what is the largest planet': 'Jupiter — diameter 139,820 km, over 1,300 Earths could fit inside it.',
+    'meaning of life': '42. (According to Douglas Adams\' The Hitchhiker\'s Guide to the Galaxy.)',
+    'capital of germany': 'The capital of Germany is Berlin.',
+    'germany capital': 'Berlin is the capital of Germany.',
+    'what is the capital of germany': 'Berlin.',
+    'capital of japan': 'The capital of Japan is Tokyo.',
+    'japan capital': 'Tokyo is the capital of Japan.',
+    'tallest mountain': 'Mount Everest is the tallest mountain on Earth, at 8,848.86 meters (29,031.7 feet) above sea level.',
+    'what is the tallest mountain': 'Mount Everest — 8,848.86 m (29,031.7 ft) above sea level.',
+    'what is the capital of india': 'New Delhi is the capital of India.',
+    'capital of india': 'New Delhi.',
+    'what is the chemical symbol for water': 'H₂O — two hydrogen atoms covalently bonded to one oxygen atom.',
+    'chemical symbol for water': 'H₂O.',
+    'what is the atomic number of carbon': 'Carbon has atomic number 6.',
+    'atomic number of carbon': '6.',
+};
+
 async function sendQuery() {
     const g = id => document.getElementById(id);
     const input = g('queryInput'), resultBox = g('resultBox'), btn = g('sendBtn');
     if (!input || !resultBox || !btn) return;
-    const query = input.value.trim() || 'what is the capital of France?';
+    const query = input.value.trim().toLowerCase().replace(/[?]/g, '').replace(/\s+/g, ' ').trim();
+    if (!query) { resultBox.innerHTML = '<span class="muted">Please type a question.</span>'; return; }
     btn.disabled = true; btn.textContent = '...';
-    const isHit = Math.random() < 0.65;
-    const score = isHit ? (0.85 + Math.random() * 0.15) : 0;
+
+    // Find answer — exact match or partial match
+    let answer = ANSWERS[query];
+    if (!answer) {
+        for (const [key, val] of Object.entries(ANSWERS)) {
+            if (query.includes(key) || key.includes(query)) { answer = val; break; }
+        }
+    }
+
+    const isHit = answer !== undefined && Math.random() < 0.8;
+    const score = isHit ? (0.88 + Math.random() * 0.12) : 0;
     const rt = isHit ? Math.floor(Math.random() * 37 + 8) : Math.floor(Math.random() * 580 + 320);
-    if (isHit) { metrics.hits++; metrics.latency = Math.round((metrics.latency * metrics.total + rt) / (metrics.total + 1)); }
-    else { metrics.misses++; metrics.latency = Math.round((metrics.latency * metrics.total + rt) / (metrics.total + 1)); metrics.geminiLatency = Math.floor(Math.random() * 500 + 400); metrics.updates++; }
-    metrics.total++;
+
+    if (answer && isHit) {
+        // Cache hit — return known answer
+        metrics.hits++;
+        metrics.latency = Math.round((metrics.latency * metrics.total + rt) / (metrics.total + 1));
+        metrics.total++;
+        updateUI();
+        animateFlow(true);
+        await new Promise(r => setTimeout(r, 1200));
+        resultBox.innerHTML = `<span class="hit">● CACHE HIT</span><br><span class="muted">query:</span> "${input.value.trim()}"<br><span class="hit">answer:</span> ${answer}<br><span class="muted">score:</span> ${score.toFixed(3)} · <span class="muted">response:</span> ${rt}ms · <span class="muted">source:</span> ChromaDB`;
+    } else if (answer) {
+        // Cache miss (first time) — simulate Gemini, then store
+        const genAnswer = answer;
+        metrics.misses++;
+        metrics.latency = Math.round((metrics.latency * metrics.total + rt) / (metrics.total + 1));
+        metrics.geminiLatency = Math.floor(Math.random() * 500 + 400);
+        metrics.updates++;
+        metrics.total++;
+        updateUI();
+        animateFlow(false);
+        await new Promise(r => setTimeout(r, 2200));
+        resultBox.innerHTML = `<span class="miss">● CACHE MISS → Gemini LLM</span><br><span class="muted">query:</span> "${input.value.trim()}"<br><span class="hit">answer:</span> ${genAnswer}<br><span class="muted">score:</span> ${score.toFixed(3)} · <span class="muted">response:</span> ${rt}ms · <span class="muted">source:</span> Gemini → ChromaDB (cached)`;
+    } else {
+        // Unknown query — simulate Gemini generating a new answer
+        const genAnswer = `${input.value.trim().charAt(0).toUpperCase() + input.value.trim().slice(1)} is an interesting topic. In the context of semantic caching and vector search, understanding ${query} requires analyzing its embedding similarity against stored vectors. The Gemini Flash-Lite model can provide a detailed explanation, which would then be cached for future semantically similar queries.`;
+        metrics.misses++;
+        metrics.latency = Math.round((metrics.latency * metrics.total + rt) / (metrics.total + 1));
+        metrics.geminiLatency = Math.floor(Math.random() * 500 + 400);
+        metrics.updates++;
+        metrics.total++;
+        updateUI();
+        animateFlow(false);
+        await new Promise(r => setTimeout(r, 2200));
+        resultBox.innerHTML = `<span class="miss">● CACHE MISS → Gemini LLM</span><br><span class="muted">query:</span> "${input.value.trim()}"<br><span class="hit">answer:</span> ${genAnswer}<br><span class="muted">score:</span> ${score.toFixed(3)} · <span class="muted">response:</span> ${rt}ms · <span class="muted">source:</span> Gemini Flash-Lite (now cached)`;
+    }
+
     if (metrics.total % 7 === 0) metrics.circuitState = (metrics.circuitState + 1) % 3;
-    updateUI();
-    animateFlow(isHit);
-    await new Promise(r => setTimeout(r, isHit ? 1200 : 2000));
-    resultBox.innerHTML = isHit
-        ? `<span class="hit">● CACHE HIT</span><br><span class="muted">query:</span> "${query}"<br><span class="muted">score:</span> ${score.toFixed(3)}<br><span class="muted">response:</span> ${rt}ms<br><span class="muted">source:</span> ChromaDB (cached)`
-        : `<span class="miss">● CACHE MISS → Gemini LLM</span><br><span class="muted">query:</span> "${query}"<br><span class="muted">score:</span> ${score.toFixed(3)}<br><span class="muted">response:</span> ${rt}ms<br><span class="muted">source:</span> Gemini Flash-Lite (now cached)`;
     btn.disabled = false; btn.textContent = 'Send';
 }
 
