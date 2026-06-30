@@ -26,7 +26,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
     const result = await model.generateContent(body.prompt);
     const response = result.response.text();
 
