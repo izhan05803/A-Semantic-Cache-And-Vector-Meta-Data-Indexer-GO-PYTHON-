@@ -355,7 +355,7 @@
 
 <section class="section" id="demo">
     <h2 class="section-title">▶ Live Demo</h2>
-    <p class="section-sub">Query the real Gemini LLM via the deployed Go proxy. Watch the request trace through each service.</p>
+    <p class="section-sub">Query the real Gemini LLM via the deployed backend. Metrics update live with every query.</p>
     <div class="demo-grid">
         <div class="demo-card">
             <div class="demo-card-title">Query</div>
@@ -382,7 +382,7 @@
 
 <section class="section" id="metrics">
     <h2 class="section-title">📊 Live Metrics</h2>
-    <p class="section-sub">Real-time telemetry from Go proxy and Python indexer.</p>
+    <p class="section-sub">Tracked from actual demo queries — every hit, miss, and response time is real.</p>
     <div class="metrics-grid">
         <div class="metric-card">
             <div class="metric-value hitrate" id="m-hitrate">0%</div>
@@ -511,7 +511,7 @@
 const BACKEND_URL = '/.netlify/functions';
 
 // ─── DEMO & METRICS ───
-const metrics = { hits: 47, misses: 13, total: 60, latency: 142, geminiLatency: 680, updates: 19, circuitState: 0 };
+const metrics = { hits: 0, misses: 0, total: 0, latency: 0, geminiLatency: 0, updates: 0, circuitState: 0 };
 
 function updateUI() {
     const hr = metrics.total > 0 ? Math.round((metrics.hits / metrics.total) * 100) : 0;
@@ -679,16 +679,6 @@ if (sendBtn) {
 if (queryInput) {
     queryInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendQuery(); });
 }
-setInterval(() => {
-    if (Math.random() < 0.3) {
-        const isHit = Math.random() < 0.7;
-        if (isHit) metrics.hits++; else { metrics.misses++; metrics.updates++; }
-        metrics.total++;
-        metrics.latency = Math.round(metrics.latency * 0.9 + Math.floor(Math.random() * 40 + 10) * 0.1);
-        metrics.geminiLatency = Math.round(metrics.geminiLatency * 0.9 + Math.floor(Math.random() * 400 + 400) * 0.1);
-        updateUI();
-    }
-}, 3000);
 updateUI();
 </script>
 </body>
