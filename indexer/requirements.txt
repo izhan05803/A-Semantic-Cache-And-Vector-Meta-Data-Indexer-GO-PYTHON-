@@ -1,4 +1,5 @@
 chromadb
+pydantic-settings
 grpcio-health-checking
 prometheus-client
 opentelemetry-api
