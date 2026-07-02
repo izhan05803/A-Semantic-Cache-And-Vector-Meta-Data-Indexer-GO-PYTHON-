@@ -10,6 +10,17 @@
 [![K8s](https://img.shields.io/badge/Kubernetes-manifests-326CE5?logo=kubernetes)](https://kubernetes.io)
 [![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus)](https://prometheus.io)
 [![OTel](https://img.shields.io/badge/OpenTelemetry-traces-00E5FF?logo=opentelemetry)](https://opentelemetry.io)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-FF6B35?logo=githubpages)](https://izhan05803.github.io/A-Semantic-Cache-And-Vector-Meta-Data-Indexer-GO-PYTHON-/project.html)
+
+---
+
+## Demo
+
+[![Demo Screenshot](assets/demo.png)](https://izhan05803.github.io/A-Semantic-Cache-And-Vector-Meta-Data-Indexer-GO-PYTHON-/project.html)
+
+*Click the image above or the badge below to try the live interactive demo.*
+
+![Demo GIF](assets/demo.gif)
 
 ---
 
@@ -17,7 +28,7 @@
 
 A live, browser-based showcase of the entire system — including a **spinning ASCII donut** terminal animation, interactive query demo with real-time request flow visualization, and a full metrics dashboard.
 
-👉 **[Open project.html →](https://izhan05803.github.io/A-Semantic-Cache-And-Vector-Meta-Data-Indexer-GO-PYTHON-/project.html)**
+👉 **[Open Live Demo →](https://izhan05803.github.io/A-Semantic-Cache-And-Vector-Meta-Data-Indexer-GO-PYTHON-/project.html)**
 
 | Feature | Description |
 |---|---|
